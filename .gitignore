@@ -1,0 +1,7 @@
+__pycache__/
+.venv/
+venv/
+*.pyc
+credentials.json
+Students_Data_500.xlsx
+.DS_Store

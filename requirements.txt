@@ -1,0 +1,8 @@
+flask
+pandas
+openpyxl
+qrcode
+pillow
+gunicorn
+gspread
+oauth2client
