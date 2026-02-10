@@ -4,5 +4,5 @@ openpyxl
 qrcode
 pillow
 gunicorn
-gspread
-oauth2client
+pymongo
+dnspython

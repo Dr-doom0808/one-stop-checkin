@@ -110,7 +110,9 @@
     <nav class="app-bar">
         <a href="/" class="btn btn-sm btn-light rounded-circle"><i class="bi bi-arrow-left"></i></a>
         <h1 class="page-title">Attendance Details</h1>
-        <div style="width: 32px;"></div> <!-- Spacer -->
+        <button onclick="syncData()" class="btn btn-sm btn-light rounded-circle" id="syncBtn">
+            <i class="bi bi-arrow-repeat"></i>
+        </button>
     </nav>
 
     <div class="container pb-5">
@@ -229,5 +231,37 @@
             document.getElementById('noResults').style.display = visibleCount === 0 ? 'block' : 'none';
         }
     </script>
+    <script>
+        function syncData() {
+            const btn = document.getElementById('syncBtn');
+            const icon = btn.querySelector('i');
+            
+            // Animation
+            icon.classList.add('spin-animation');
+            btn.disabled = true;
+            
+            fetch('/sync', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload(); // Reload to show new data
+                    } else {
+                        alert('Sync Failed: ' + data.message);
+                        btn.disabled = false;
+                        icon.classList.remove('spin-animation');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Sync Error');
+                    btn.disabled = false;
+                    icon.classList.remove('spin-animation');
+                });
+        }
+    </script>
+    <style>
+        @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+        .spin-animation { animation: spin 1s linear infinite; }
+    </style>
 </body>
 </html>

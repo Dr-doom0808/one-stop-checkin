@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #ffffff;
+            --accent-color: #333333;
+            --bg-color: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+        }
+
+        /* Login Overlay */
+        #loginOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+
+        /* Dashboard */
+        .sidebar {
+            height: 100vh;
+            background: white;
+            border-right: 1px solid #eee;
+            padding: 20px;
+            position: fixed;
+            width: 250px;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+
+        .nav-link {
+            color: #666;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: #f0f0f0;
+            color: black;
+            font-weight: 600;
+        }
+
+        .nav-link i { margin-right: 10px; }
+
+        /* Stats Cards */
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .stat-number { font-size: 2rem; font-weight: 700; }
+        .stat-label { color: #666; font-size: 0.9rem; }
+
+        /* Table */
+        .table-custom {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            border-bottom: 2px solid #eee;
+            padding: 15px;
+        }
+        
+        .table td { padding: 15px; vertical-align: middle; }
+
+        .badge-present { background: black; color: white; }
+        .badge-pending { background: #eee; color: #666; }
+
+        /* Add Modal */
+        .qr-preview {
+            width: 200px;
+            height: 200px;
+            border: 2px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .qr-preview img { width: 100%; height: 100%; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Login Overlay -->
+    <div id="loginOverlay">
+        <div class="login-card">
+            <h3 class="fw-bold mb-4">Admin Access</h3>
+            <input type="password" id="adminPassword" class="form-control mb-3" placeholder="Enter Password">
+            <button class="btn btn-dark w-100 py-2" onclick="login()">Login</button>
+            <p id="loginError" class="text-danger mt-3 small"></p>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4 class="fw-bold mb-4 px-2">Admin Panel</h4>
+        <nav class="nav flex-column">
+            <a class="nav-link active" href="#" onclick="showSection('dashboard')">
+                <i class="bi bi-grid-fill"></i> Dashboard
+            </a>
+            <a class="nav-link" href="#" onclick="showSection('add')">
+                <i class="bi bi-person-plus-fill"></i> Add Student
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        
+        <!-- Dashboard Section -->
+        <div id="dashboardSection">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold">Student Lookup</h2>
+                <div class="input-group w-auto">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Search by name, ID, or branch..." onkeyup="searchStudents()">
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-custom">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Branch</th>
+                            <th>ID (UUID)</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                        <!-- Rows populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Add Student Section -->
+        <div id="addSection" style="display: none;">
+            <h2 class="fw-bold mb-4">Add New Student</h2>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card p-4 border-0 shadow-sm">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" id="newName" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" id="newEmail" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Branch</label>
+                            <select id="newBranch" class="form-select">
+                                <option value="">Select Branch</option>
+                                <option value="CSE">CSE</option>
+                                <option value="IT">IT</option>
+                                <option value="ECE">ECE</option>
+                                <option value="ME">ME</option>
+                                <option value="MBA">MBA</option>
+                            </select>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="sendEmailCheck" checked>
+                            <label class="form-check-label" for="sendEmailCheck">
+                                Send Email Invite Immediately
+                            </label>
+                        </div>
+                        <button class="btn btn-dark w-100" onclick="addStudent()">Generate & Add</button>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card p-4 border-0 shadow-sm text-center" id="resultCard" style="display: none;">
+                        <h5 class="fw-bold mb-3">Student Added Successfully!</h5>
+                        <div class="qr-preview" id="qrDisplay">
+                            <!-- QR Image -->
+                        </div>
+                        <p class="text-muted small" id="newStudentId">UUID: ...</p>
+                        
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-dark" onclick="printQR()">
+                                <i class="bi bi-printer"></i> Print QR
+                            </button>
+                            <button class="btn btn-primary" onclick="alert('Email feature requires SMTP configuration.')">
+                                <i class="bi bi-envelope"></i> Send Email
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Login Logic
+        function login() {
+            const pass = document.getElementById('adminPassword').value;
+            fetch('/admin/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({password: pass})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    loadStudents(); // Load initial data
+                } else {
+                    document.getElementById('loginError').innerText = data.message;
+                }
+            });
+        }
+
+        // Navigation
+        function showSection(id) {
+            document.getElementById('dashboardSection').style.display = id === 'dashboard' ? 'block' : 'none';
+            document.getElementById('addSection').style.display = id === 'add' ? 'block' : 'none';
+            
+            // Update active link
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Search
+        let debounceTimer;
+        function searchStudents() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                loadStudents(document.getElementById('searchInput').value);
+            }, 300);
+        }
+
+        function loadStudents(query = '') {
+            fetch('/admin/search', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({query: query})
+            })
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('studentTableBody');
+                tbody.innerHTML = '';
+                
+                data.forEach(student => {
+                    const statusBadge = student.status === 'present' 
+                        ? '<span class="badge badge-present">Checked In</span>' 
+                        : '<span class="badge badge-pending">Pending</span>';
+                        
+                    const row = `
+                        <tr>
+                            <td class="fw-bold">${student.name}</td>
+                            <td>${student.branch}</td>
+                            <td class="text-muted small">${student.id}</td>
+                            <td>${statusBadge}</td>
+                            <td>${student.time || '-'}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            });
+        }
+
+        // Add Student
+        function addStudent() {
+            const name = document.getElementById('newName').value;
+            const email = document.getElementById('newEmail').value;
+            const branch = document.getElementById('newBranch').value;
+            const sendEmail = document.getElementById('sendEmailCheck').checked;
+            
+            if(!name || !branch || !email) {
+                alert("Please fill Name, Email and Branch");
+                return;
+            }
+
+            // Show loading state
+            const btn = document.querySelector('button[onclick="addStudent()"]');
+            const originalText = btn.innerText;
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+
+            fetch('/admin/add', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    name, 
+                    email, 
+                    branch,
+                    send_email: sendEmail
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                // Reset button
+                btn.innerText = originalText;
+                btn.disabled = false;
+
+                if(data.status === 'success') {
+                    // Show Result
+                    document.getElementById('resultCard').style.display = 'block';
+                    document.getElementById('qrDisplay').innerHTML = `<img src="${data.qr_code}" alt="QR Code">`;
+                    document.getElementById('newStudentId').innerHTML = `UUID: ${data.student.UUID}<br><span class="badge bg-info text-dark mt-2">Email: ${data.email_status}</span>`;
+                    
+                    // Clear inputs
+                    document.getElementById('newName').value = '';
+                    document.getElementById('newEmail').value = '';
+                } else {
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch(err => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+                alert("Network Error");
+            });
+        }
+        
+        function printQR() {
+            const content = document.getElementById('qrDisplay').innerHTML;
+            const win = window.open('', '', 'height=500, width=500');
+            win.document.write('<html><body>');
+            win.document.write(content);
+            win.document.write('</body></html>');
+            win.document.close();
+            win.print();
+        }
+    </script>
+</body>
+</html>

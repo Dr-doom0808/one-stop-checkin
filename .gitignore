@@ -1,4 +1,24 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+env/
+.env
+
+# System Files
+.DS_Store
+
+# Logs
+*.log
+
+# Database (if local sqlite was used)
+*.sqlite3
+
+# QR Codes (generated temporarily)
+qr_codes/__pycache__/
 .venv/
 venv/
 *.pyc
