@@ -67,7 +67,7 @@ ADMIN_PASSWORD = "admin" # Change this!
 
 # --- Database Configuration ---
 # MongoDB Connection String
-MONGO_URI = "mongodb+srv://vinayaitm273209_db_user:NIET273209@cluster0.gjw99vq.mongodb.net/"
+MONGO_URI = "mongodb+srv://NIET_Event:NIET0000@cluster0.u9owtey.mongodb.net/"
 DB_NAME = "student_event"
 COLLECTION_NAME = "student_verify"
 

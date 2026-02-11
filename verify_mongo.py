@@ -1,8 +1,8 @@
 from pymongo import MongoClient
 import sys
 
-# The connection string currently in use
-uri = "mongodb+srv://vinayaitm273209_db_user:NIET273209@cluster0.gjw99vq.mongodb.net/"
+# MongoDB URI (from your app.py)
+uri = "mongodb+srv://NIET_Event:NIET0000@cluster0.u9owtey.mongodb.net/"
 
 print("------------------------------------------------")
 print("Testing MongoDB Connection...")
